@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voicia | AI receptionist for dental clinics</title>
+<meta name="description" content="Voicia answers every call and books your dental patients, day or night.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --s1: #121212;
+    --s2: #1c1c1c;
+    --line: #262626;
+    --text: #f5f5f4;
+    --sub: #8a8a87;
+    --green: #34c759;
+    --blue: #4c8dff;
+    --font: "Geist", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-behavior: smooth; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 1.0625rem; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 4px; border-radius: 8px; }
+  .wrap { width: min(1180px, 100% - 2.5rem); margin-inline: auto; }
+  h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.045em; line-height: 1; }
+
+  /* Nav */
+  .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(0,0,0,.7); backdrop-filter: saturate(160%) blur(16px); -webkit-backdrop-filter: saturate(160%) blur(16px); }
+  .nav .wrap { height: 64px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 1.3rem; font-weight: 600; letter-spacing: -.04em; display: flex; align-items: center; gap: .5rem; }
+  .logo svg { width: 22px; height: 22px; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; font-size: .93rem; color: var(--sub); }
+  .nav-links a:hover { color: var(--text); }
+  .pill { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 1.1rem; border-radius: 999px; background: var(--text); color: #000; font-weight: 500; font-size: .93rem; transition: opacity .2s; }
+  .pill:hover { opacity: .85; }
+  .pill.lg { height: 52px; padding: 0 1.6rem; font-size: 1rem; }
+  .pill.dark { background: var(--s2); color: var(--text); }
+
+  /* Hero */
+  .hero { padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(4rem, 8vw, 6rem); }
+  .hero .wrap { display: grid; grid-template-columns: 1.15fr .85fr; gap: 3rem; align-items: center; }
+  .hero h1 { font-size: clamp(3.2rem, 7.4vw, 6.6rem); }
+  .hero h1 span { display: block; color: var(--sub); }
+  .hero p { font-size: 1.25rem; color: var(--sub); margin: 1.75rem 0 2.25rem; }
+  .hero .actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+
+  /* Phone */
+  .phone-wrap { display: flex; justify-content: center; }
+  .phone {
+    width: 320px; height: 650px; border-radius: 54px; padding: 12px;
+    background: linear-gradient(145deg, #3a3a3a, #111 40%, #2a2a2a);
+    box-shadow: 0 0 0 1px #444, 0 40px 120px rgba(255,255,255,.06);
+    position: relative;
+  }
+  .screen { height: 100%; border-radius: 43px; background: linear-gradient(180deg, #1d2a3a 0%, #0b0f14 55%, #050505 100%); overflow: hidden; position: relative; display: flex; flex-direction: column; padding: 18px 18px 22px; }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 104px; height: 31px; background: #000; border-radius: 20px; }
+  .status { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 600; padding: 2px 14px 0; }
+  .caller { text-align: center; margin-top: 46px; }
+  .avatar { width: 66px; height: 66px; border-radius: 50%; margin: 0 auto 12px; background: #3b4a5c; display: grid; place-items: center; font-size: 1.4rem; font-weight: 500; }
+  .caller h3 { font-size: 1.5rem; font-weight: 500; letter-spacing: -.02em; }
+  .caller small { color: rgba(255,255,255,.6); font-size: .88rem; display: block; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .feed { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 14px 0; overflow: hidden; }
+  .bubble { max-width: 85%; padding: 9px 13px; border-radius: 18px; font-size: .84rem; line-height: 1.35; opacity: 0; transform: translateY(10px); transition: opacity .35s, transform .35s; }
+  .bubble.in { opacity: 1; transform: none; }
+  .bubble.ai { background: rgba(255,255,255,.12); align-self: flex-start; border-bottom-left-radius: 6px; }
+  .bubble.pt { background: var(--blue); align-self: flex-end; border-bottom-right-radius: 6px; }
+  .appt { background: #fff; color: #000; border-radius: 18px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; opacity: 0; transform: translateY(12px) scale(.97); transition: all .45s cubic-bezier(.2,.8,.2,1); }
+  .appt.in { opacity: 1; transform: none; }
+  .appt .cal { width: 40px; border-radius: 9px; overflow: hidden; text-align: center; box-shadow: 0 0 0 1px #e5e5e5; flex: none; }
+  .appt .cal b { display: block; background: #ff3b30; color: #fff; font-size: .6rem; font-weight: 600; padding: 2px 0; }
+  .appt .cal i { display: block; font-style: normal; font-size: 1.15rem; font-weight: 600; padding: 2px 0 3px; }
+  .appt strong { display: block; font-size: .88rem; font-weight: 600; }
+  .appt span { font-size: .78rem; color: #666; }
+  .controls { display: flex; justify-content: space-around; padding-top: 6px; }
+  .controls div { width: 58px; height: 58px; border-radius: 50%; background: rgba(255,255,255,.14); display: grid; place-items: center; }
+  .controls .end { background: #ff3b30; }
+  .controls svg { width: 24px; height: 24px; }
+
+  /* Section base */
+  section.block { padding: clamp(5rem, 10vw, 8.5rem) 0; }
+  .head { max-width: 680px; margin-bottom: 3rem; }
+  .head h2 { font-size: clamp(2.4rem, 5.4vw, 4.4rem); }
+  .head p { color: var(--sub); font-size: 1.2rem; margin: 1.1rem 0 0; }
+
+  /* Call log */
+  .log { background: var(--s1); border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+  .log-top { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--line); font-size: .95rem; }
+  .log-top span { color: var(--sub); }
+  .row { display: grid; grid-template-columns: 90px 1.2fr 1.6fr auto; gap: 1rem; align-items: center; padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--line); font-size: .97rem; }
+  .row:last-child { border-bottom: 0; }
+  .row .t { color: var(--sub); font-variant-numeric: tabular-nums; }
+  .row .r { color: var(--sub); }
+  .tag { font-size: .82rem; font-weight: 500; padding: .3rem .7rem; border-radius: 999px; white-space: nowrap; }
+  .tag.ok { background: rgba(52,199,89,.14); color: #5ee07f; }
+  .tag.mv { background: rgba(76,141,255,.15); color: #85b1ff; }
+  .tag.q { background: var(--s2); color: var(--sub); }
+  .tag.u { background: rgba(255,159,10,.15); color: #ffb340; }
+
+  /* Listen */
+  .listen-card { background: var(--s1); border-radius: 28px; box-shadow: 0 0 0 1px var(--line); padding: clamp(1.5rem, 4vw, 3rem); display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: center; }
+  .play { width: 96px; height: 96px; border-radius: 50%; border: 0; cursor: pointer; background: var(--text); color: #000; display: grid; place-items: center; transition: transform .2s; }
+  .play:hover { transform: scale(1.04); }
+  .play svg { width: 32px; height: 32px; }
+  .track-name { font-size: 1.3rem; font-weight: 500; letter-spacing: -.02em; }
+  .track-sub { color: var(--sub); font-size: .95rem; }
+  .bars { display: flex; align-items: center; gap: 3px; height: 70px; margin-top: 1.2rem; cursor: pointer; }
+  .bars span { flex: 1; border-radius: 2px; background: #333; transition: background .12s; }
+  .bars span.on { background: var(--text); }
+  .times { display: flex; justify-content: space-between; color: var(--sub); font-size: .85rem; font-variant-numeric: tabular-nums; margin-top: .5rem; }
+  .err { grid-column: 1 / -1; margin: 0; color: #ff9f0a; font-size: .92rem; display: none; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .feature { background: var(--s1); border-radius: 24px; padding: 1.75rem; box-shadow: 0 0 0 1px var(--line); }
+  .feature svg { width: 26px; height: 26px; margin-bottom: 2.75rem; display: block; }
+  .feature h3 { font-size: 1.4rem; letter-spacing: -.03em; margin-bottom: .45rem; }
+  .feature p { margin: 0; color: var(--sub); }
+  .feature.light { background: var(--text); color: #000; box-shadow: none; }
+  .feature.light p { color: rgba(0,0,0,.6); }
+
+  /* Video */
+  .video { position: relative; aspect-ratio: 16 / 9; border-radius: 28px; overflow: hidden; background: var(--s1); box-shadow: 0 0 0 1px var(--line); }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .video-link { display: inline-block; margin-top: 1.1rem; color: var(--sub); font-size: .95rem; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+  .video-link:hover { color: var(--text); }
+  @media (max-width: 900px) { .features { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 580px) { .features { grid-template-columns: 1fr; } }
+
+  /* Steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .step { background: var(--s1); border-radius: 24px; padding: 2rem; box-shadow: 0 0 0 1px var(--line); }
+  .step .n { color: var(--sub); font-size: .95rem; }
+  .step h3 { font-size: 1.7rem; letter-spacing: -.035em; margin: 3.5rem 0 .4rem; }
+  .step p { margin: 0; color: var(--sub); }
+
+  /* Book */
+  .cal-frame { background: transparent; }
+  #my-cal-inline-15min { width: 100%; min-height: 700px; overflow: auto; }
+
+  footer { border-top: 1px solid var(--line); padding: 2rem 0 0; color: var(--sub); font-size: .9rem; overflow: hidden; }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .wordmark { margin: clamp(2rem, 5vw, 4rem) 0 0; text-align: center; font-weight: 700; font-size: 23.5vw; line-height: .8; letter-spacing: -.06em; white-space: nowrap; user-select: none; background: linear-gradient(180deg, var(--text) 0%, rgba(245,245,244,.25) 70%, rgba(245,245,244,0) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; transform: translateY(.1em); }
+
+  @media (max-width: 900px) {
+    .hero .wrap { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; }
+    .step h3 { margin-top: 1.5rem; }
+    .nav-links a:not(.pill) { display: none; }
+    .row { grid-template-columns: 70px 1fr auto; }
+    .row .r { display: none; }
+  }
+  @media (max-width: 520px) {
+    .listen-card { grid-template-columns: 1fr; }
+    .phone { width: 290px; height: 590px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="9" width="3" height="6" rx="1.5"/><rect x="10.5" y="4" width="3" height="16" rx="1.5"/><rect x="18" y="7" width="3" height="10" rx="1.5"/></svg>
+      Voicia
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#calls">Product</a>
+      <a href="#features">Features</a>
+      <a href="#listen">Watch</a>
+      <a href="#book" class="pill">Book a demo</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <h1>Every call answered. <span>Every patient booked.</span></h1>
+        <p>The AI receptionist for dental clinics.</p>
+        <div class="actions">
+          <a href="#book" class="pill lg">Book a demo</a>
+          <a href="#listen" class="pill lg dark">Watch a call</a>
+        </div>
+      </div>
+
+      <div class="phone-wrap" aria-label="Example call answered by Voicia">
+        <div class="phone">
+          <div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>8:47</span><span>100%</span></div>
+            <div class="caller">
+              <div class="avatar">SM</div>
+              <h3>Sarah Miller</h3>
+              <small id="timer">Answered by Voicia 0:00</small>
+            </div>
+            <div class="feed" id="feed"></div>
+            <div class="controls" aria-hidden="true">
+              <div><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1a7 7 0 0 0 6-6.9z"/></svg></div>
+              <div class="end"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 9c-1.6 0-3.2.3-4.6.7v3.1c0 .4-.2.7-.6.9-1 .5-1.9 1.1-2.6 1.8-.2.2-.4.3-.7.3s-.5-.1-.7-.3L.3 13.1c-.2-.2-.3-.4-.3-.7s.1-.5.3-.7C3.3 8.8 7.5 7 12 7s8.7 1.8 11.7 4.7c.2.2.3.4.3.7s-.1.5-.3.7l-2.5 2.4c-.2.2-.4.3-.7.3s-.5-.1-.7-.3c-.8-.7-1.7-1.3-2.6-1.8-.3-.2-.6-.5-.6-.9V9.7C15.2 9.3 13.6 9 12 9z"/></svg></div>
+              <div><svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="calls" style="padding-top:2rem">
+    <div class="wrap">
+      <div class="head">
+        <h2>Your phone, handled.</h2>
+        <p>Here's a normal evening at your front desk.</p>
+      </div>
+      <div class="log">
+        <div class="log-top"><strong>Tonight</strong><span>Office closed</span></div>
+        <div class="row"><span class="t">6:12 PM</span><span>James Carter</span><span class="r">New patient cleaning</span><span class="tag ok">Booked</span></div>
+        <div class="row"><span class="t">6:40 PM</span><span>Maria Lopez</span><span class="r">Moved her checkup to Monday</span><span class="tag mv">Rescheduled</span></div>
+        <div class="row"><span class="t">7:05 PM</span><span>Kevin Shah</span><span class="r">Asked if you take Delta Dental</span><span class="tag q">Answered</span></div>
+        <div class="row"><span class="t">8:21 PM</span><span>Emily Brooks</span><span class="r">Tooth pain, needs to be seen</span><span class="tag u">Sent to team</span></div>
+        <div class="row"><span class="t">8:47 PM</span><span>Sarah Miller</span><span class="r">New patient cleaning</span><span class="tag ok">Booked</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features" style="padding-top:0">
+    <div class="wrap">
+      <div class="head"><h2>What Voicia does.</h2></div>
+      <div class="features">
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+          <h3>Answers questions</h3>
+          <p>Hours, insurance, pricing, location. All about your clinic.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>
+          <h3>Books appointments</h3>
+          <p>Checks your real availability and books on the spot.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg>
+          <h3>Reschedules and cancels</h3>
+          <p>Moves or cancels visits with no back and forth.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.3-7.5 9.5-4.3-1.2-7.5-5-7.5-9.5V6L12 3z"/><path d="M9 12l2 2 4-4"/></svg>
+          <h3>HIPAA compliant</h3>
+          <p>Patient data stays private and secure.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+          <h3>Works with your CRM</h3>
+          <p>Connects to the system you already use.</p>
+        </div>
+        <div class="feature light">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <h3>Built around you</h3>
+          <p>Need something else? If it's possible, we'll add it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="listen">
+    <div class="wrap">
+      <div class="head">
+        <h2>Watch it book a patient.</h2>
+        <p>A real call with Voicia.</p>
+      </div>
+      <div class="video">
+        <iframe src="https://www.loom.com/embed/f63ca18a9ea84695b8ea2762c872eeca?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" title="Voicia booking a patient" allow="fullscreen" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <a class="video-link" href="https://www.loom.com/share/f63ca18a9ea84695b8ea2762c872eeca" target="_blank" rel="noopener">Open the video on Loom</a>
+    </div>
+  </section>
+
+  <section class="block" style="padding-top:0">
+    <div class="wrap">
+      <div class="head"><h2>Live in a week.</h2></div>
+      <div class="steps">
+        <div class="step"><span class="n">Step 1</span><h3>We set it up</h3><p>You don't lift a finger.</p></div>
+        <div class="step"><span class="n">Step 2</span><h3>It answers</h3><p>Every call, first ring.</p></div>
+        <div class="step"><span class="n">Step 3</span><h3>You fill chairs</h3><p>Booked into your calendar.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block book" id="book">
+    <div class="wrap">
+      <div class="head">
+        <h2>See it on your clinic.</h2>
+        <p>Free 20 minute call.</p>
+      </div>
+      <div class="cal-frame"><div id="my-cal-inline-15min"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© <span id="year"></span> Voicia</span><span>AI receptionists for dental clinics</span></div>
+  <div class="wordmark" aria-hidden="true">VOICIA</div>
+</footer>
+
+<!-- Cal inline embed -->
+<script type="text/javascript">
+  (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+  Cal("init", "15min", {origin:"https://app.cal.com"});
+  Cal.config = Cal.config || {};
+  Cal.config.forwardQueryParams = true;
+
+  Cal.ns["15min"]("inline", {
+    elementOrSelector:"#my-cal-inline-15min",
+    config: {"layout":"month_view","useSlotsViewOnSmallScreen":"true"},
+    calLink: "voicia/15min",
+  });
+
+  Cal.ns["15min"]("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+</script>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Phone call */
+  const feed = document.getElementById("feed");
+  const timerEl = document.getElementById("timer");
+  const lines = [
+    ["ai", "Bright Smile Dental, this is Ava. How can I help?"],
+    ["pt", "Hi, can I book a cleaning?"],
+    ["ai", "Of course. Thursday at 10 or Friday at 2:30?"],
+    ["pt", "Friday please."],
+    ["ai", "Done. I just texted you the details."]
+  ];
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const show = el => requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
+  let sec = 0, tick;
+
+  function bubble(who, text, instant) {
+    const b = document.createElement("div");
+    b.className = "bubble " + who + (instant ? " in" : "");
+    b.textContent = text;
+    feed.appendChild(b);
+    if (!instant) show(b);
+  }
+  function appt(instant) {
+    const a = document.createElement("div");
+    a.className = "appt" + (instant ? " in" : "");
+    a.innerHTML = '<div class="cal"><b>FRI</b><i>17</i></div><div><strong>Cleaning, Sarah Miller</strong><span>2:30 PM, new patient</span></div>';
+    feed.appendChild(a);
+    if (!instant) show(a);
+  }
+
+  async function run() {
+    if (reduce) { lines.forEach(l => bubble(l[0], l[1], true)); appt(true); timerEl.textContent = "Answered by Voicia 0:42"; return; }
+    while (true) {
+      feed.innerHTML = ""; sec = 0;
+      clearInterval(tick);
+      tick = setInterval(() => { sec++; timerEl.textContent = "Answered by Voicia 0:" + String(sec).padStart(2, "0"); }, 1000);
+      await wait(900);
+      for (const [w, t] of lines) { bubble(w, t); await wait(1100 + t.length * 30); }
+      appt();
+      clearInterval(tick);
+      await wait(5000);
+    }
+  }
+  run();
+
+</script>
+</body>
+</html>
